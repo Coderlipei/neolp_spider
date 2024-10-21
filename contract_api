@@ -1,0 +1,61 @@
+# -*- coding: utf-8 -*-
+"""
+# @Time    : 2024/8/29 16:28
+---------
+@author: lipei
+"""
+from solcx import compile_source
+import solcx
+import json
+
+
+def get_demo_contract():
+    """
+    这里是提供一个简单的源码，把这段合约的abi,和字节码解析出来，用来部署到evm链上
+    :return: 
+    """
+    available_versions = solcx.get_installable_solc_versions()
+    # print("Available Solidity versions:", available_versions)
+
+    # 安装特定版本的 Solidity 编译器
+    solcx.install_solc('0.8.0')
+
+    # 设置编译器版本
+    solcx.set_solc_version('0.8.0')
+
+    # Solidity 源代码
+    contract_source_code = '''
+    // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.0;
+    
+    contract SimpleStorage {
+        uint256 public storedData;
+    
+        function set(uint256 x) public {
+            storedData = x;
+        }
+    
+        function get() public view returns (uint256) {
+            return storedData;
+        }
+    }
+    '''
+
+    # 编译合约
+    compiled_sol = compile_source(contract_source_code)
+    contract_interface = compiled_sol['<stdin>:SimpleStorage']
+    bytecode = contract_interface['bin']
+    abi = contract_interface['abi']
+    return bytecode, abi
+
+
+def get_target_contract(target_path):
+    """
+    和合约交互需要把目标合约的abi拷贝出来，交互的时候只能按照目标abi的规则构建参数
+    :param 目标路径: 
+    :return: 
+    """
+    
+    with open(target_path) as f:  # 包含ABI的JSON文件
+        contract_abi = json.load(f)
+        return contract_abi
